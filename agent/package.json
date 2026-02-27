@@ -1,0 +1,22 @@
+{
+  "name": "evoarena-agent",
+  "version": "0.1.0",
+  "description": "Off-chain AI strategy agent for EvoArena",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "once": "node dist/index.js --once",
+    "dev": "ts-node src/index.ts",
+    "dev:once": "ts-node src/index.ts --once"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.0",
+    "ethers": "^6.11.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "ts-node": "^10.9.0",
+    "@types/node": "^20.11.0"
+  }
+}

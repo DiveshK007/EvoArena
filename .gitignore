@@ -1,0 +1,16 @@
+node_modules/
+cache/
+artifacts/
+typechain-types/
+coverage/
+.env
+deployment.json
+agent/node_modules/
+agent/.env
+agent/state/
+agent/updates/
+agent/dist/
+frontend/node_modules/
+frontend/.next/
+frontend/.env.local
+*.log
