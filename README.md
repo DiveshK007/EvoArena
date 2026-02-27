@@ -46,15 +46,16 @@ contracts/                Solidity smart contracts (Hardhat)
   EvoToken.sol            Minimal ERC-20 for protocol coordination
   interfaces/             Contract interfaces (IEvoPool, IAgentController, IEpochManager)
 
-test/                     Contract tests (Mocha + Chai, 123 passing)
+test/                     Contract tests (Mocha + Chai, 128 passing)
   AgentController.test.ts 45 tests — registration, updates, slashing, bonding
-  EvoPool.test.ts         33 tests — liquidity, swaps, TWAP, protocol fees
+  EvoPool.test.ts         38 tests — liquidity, swaps, TWAP, protocol fees, pause
   EpochManager.test.ts    23 tests — epochs, proposals, finalization, rewards
   TimeLock.test.ts        9 tests — queue, execute, cancel, access control
   E2E.test.ts             13 tests — full lifecycle integration test
 
-scripts/                  Deploy & verification scripts
-  deploy.ts               Full deployment (tokens, pool, controller, epoch, timelock)
+scripts/                  Deploy, verify & demo scripts
+  deploy.ts               Full deployment with TimeLock governance transfer
+  demo-local.ts           One-command live simulation (11 scenarios)
 
 agent/                    Off-chain Node.js agent
   src/
@@ -97,7 +98,7 @@ subgraph/                 The Graph subgraph scaffold
   src/mapping.ts          Event handlers
 
 docs/                     Architecture, demo script, agent spec
-.github/workflows/ci.yml  4-job CI pipeline (test, coverage, agent, frontend)
+.github/workflows/ci.yml  3-job CI pipeline (test+coverage+lint, agent, frontend)
 ```
 
 ## ✨ Features
@@ -111,6 +112,7 @@ docs/                     Architecture, demo script, agent spec
 - **EpochManager**: On-chain multi-agent competition with scoring and rewards
 - **TimeLock**: Governance timelock for admin operations (24h–7d delay)
 - **ERC-20 Token Bonding**: Agents can stake ERC-20 tokens in addition to native bonds
+- **Emergency Pause**: Owner can halt swaps/deposits while allowing LP emergency exits
 - **Formal Slashing Criteria**: 3 enumerated conditions for agent slashing
 - **Rate Limiting**: `parameterUpdateBlock` tracking prevents flash-loan attacks
 
@@ -131,7 +133,7 @@ docs/                     Architecture, demo script, agent spec
 - **Agent Stats API**: REST endpoint at `/api/agent-stats?address=0x...`
 
 ### DevOps
-- **4-Job CI Pipeline**: test, coverage threshold, agent build, frontend build
+- **3-Job CI Pipeline**: test+coverage+lint, agent build, frontend build
 - **Gas Snapshot**: Automated gas reporting as CI artifact
 - **BSC Testnet + Mainnet**: Dual-network Hardhat configuration
 - **Subgraph Scaffold**: Ready for The Graph deployment
@@ -161,7 +163,7 @@ npx hardhat compile
 
 ### 4. Run tests
 ```bash
-npx hardhat test          # 123 tests
+npx hardhat test          # 128 tests
 npx hardhat coverage      # Coverage report
 npm run test:gas          # Gas usage report
 ```
@@ -186,8 +188,21 @@ cd frontend && npm install && npm run dev
 
 ### 8. Full demo
 ```bash
-./demo.sh
+./demo.sh          # Quick: live simulation only (~5s)
+./demo.sh full     # Full: compile + 128 tests + simulation + gas report
 ```
+
+## 📊 Test Coverage
+
+128 tests passing across 5 test files.
+
+| Contract | Statements | Branches | Functions | Lines |
+|----------|-----------|----------|-----------|-------|
+| AgentController.sol | 100% | 78.89% | 100% | 100% |
+| EvoPool.sol | 97.37% | 71.57% | 100% | 97.60% |
+| EpochManager.sol | 92.73% | 65.38% | 86.67% | 95.00% |
+| TimeLock.sol | 89.47% | 59.38% | 80.00% | 85.19% |
+| **All contracts** | **95.38%** | **70.86%** | **93.22%** | **95.92%** |
 
 ## 📊 APS (Agent Performance Score)
 

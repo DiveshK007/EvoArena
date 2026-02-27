@@ -1,69 +1,62 @@
 #!/bin/bash
 set -e
 
-echo "╔══════════════════════════════════════╗"
-echo "║     EvoArena — Full Demo Script      ║"
-echo "╚══════════════════════════════════════╝"
+MODE="${1:-quick}"
+
+echo "╔══════════════════════════════════════════════════════════════╗"
+echo "║              EvoArena — One-Command Demo                    ║"
+echo "║         Adaptive AMM with AI Agent Parameter Control        ║"
+echo "╚══════════════════════════════════════════════════════════════╝"
 echo ""
 
-# 1. Compile contracts
-echo "▶ Step 1: Compile contracts"
-npx hardhat compile
-echo "✅ Contracts compiled"
-echo ""
+if [ "$MODE" = "full" ]; then
+  # ── Full mode: compile + test + live simulation ────────────────
+  echo "▶ Step 1/4: Compile contracts"
+  npx hardhat compile --quiet
+  echo "✅ Compiled"
+  echo ""
 
-# 2. Run tests
-echo "▶ Step 2: Run unit tests"
-npx hardhat test
-echo "✅ All tests passed"
-echo ""
+  echo "▶ Step 2/4: Run 128 unit tests"
+  npx hardhat test
+  echo ""
 
-# 3. Deploy (local hardhat by default; use --network bscTestnet for testnet)
-NETWORK="${1:-hardhat}"
-echo "▶ Step 3: Deploy to $NETWORK"
-if [ "$NETWORK" = "hardhat" ]; then
-  npx hardhat run scripts/deploy.ts
+  echo "▶ Step 3/4: Live adaptive simulation"
+  npx hardhat run scripts/demo-local.ts
+  echo ""
+
+  echo "▶ Step 4/4: Gas report"
+  REPORT_GAS=true npx hardhat test --grep "should swap token0 for token1" 2>&1 | tail -40
+  echo ""
+
+elif [ "$MODE" = "quick" ]; then
+  # ── Quick mode: just the live simulation ───────────────────────
+  echo "▶ Running live adaptive simulation..."
+  echo ""
+  npx hardhat run scripts/demo-local.ts
+  echo ""
+
+elif [ "$MODE" = "test" ]; then
+  # ── Test-only mode ─────────────────────────────────────────────
+  npx hardhat test
+  echo ""
+
 else
-  npx hardhat run scripts/deploy.ts --network "$NETWORK"
-fi
-echo "✅ Deployed. See deployment.json"
-echo ""
-
-# 4. Show deployment
-echo "▶ Step 4: Deployment info"
-cat deployment.json
-echo ""
-
-# 5. Run agent once (dry-run for local)
-echo "▶ Step 5: Run agent (single epoch, dry-run)"
-cd agent
-if [ ! -d "node_modules" ]; then
-  npm install
+  echo "Usage: ./demo.sh [quick|full|test]"
+  echo ""
+  echo "  quick  — Run live simulation only (default, ~5s)"
+  echo "  full   — Compile + test + simulation + gas report (~30s)"
+  echo "  test   — Run all 128 tests only"
+  exit 1
 fi
 
-# For local demo, just show dry-run capability
-echo "[agent] In dry-run mode for local demo."
-echo "[agent] For live testnet: cd agent && npm run dev:once"
-cd ..
-echo "✅ Agent ready"
-echo ""
-
-# 6. Frontend
-echo "▶ Step 6: Frontend"
-cd frontend
-if [ ! -d "node_modules" ]; then
-  npm install
-fi
-echo "To start frontend: cd frontend && npm run dev"
-cd ..
-echo ""
-
-echo "╔══════════════════════════════════════╗"
-echo "║         Demo Complete! 🎉            ║"
-echo "╚══════════════════════════════════════╝"
-echo ""
-echo "Next steps:"
-echo "  1. For testnet: ./demo.sh bscTestnet"
-echo "  2. Start frontend: cd frontend && npm run dev"
+echo "╔══════════════════════════════════════════════════════════════╗"
+echo "║                     Demo Complete! 🎉                       ║"
+echo "╠══════════════════════════════════════════════════════════════╣"
+echo "║  Next steps:                                                ║"
+echo "║    • Start frontend:  cd frontend && npm run dev            ║"
+echo "║    • Deploy testnet:  npx hardhat run scripts/deploy.ts \\   ║"
+echo "║                       --network bscTestnet                  ║"
+echo "║    • Run agent:       cd agent && npm run dev:once          ║"
+echo "╚══════════════════════════════════════════════════════════════╝"
 echo "  3. Run agent live: cd agent && npm run dev:once"
 echo "  4. Verify on BscScan: npx hardhat run scripts/verify.ts --network bscTestnet"

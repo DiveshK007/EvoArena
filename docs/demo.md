@@ -1,109 +1,96 @@
-# EvoArena Demo Script
+# EvoArena Demo Guide
+
+## One-Command Demo
+
+```bash
+# Quick simulation (~5 seconds) — shows all adaptive features
+./demo.sh
+
+# Full demo: compile → 128 tests → live simulation → gas report
+./demo.sh full
+
+# Just run the tests
+./demo.sh test
+```
+
+The demo script deploys all 4 contracts, seeds liquidity, executes trades, registers two competing AI agents, activates Defensive mode against a whale, runs an epoch competition, finalizes scoring, claims rewards, collects protocol fees, and demonstrates emergency pause — all in one command.
+
+## What the Demo Shows
+
+| Step | Feature | Before → After |
+|------|---------|----------------|
+| Normal Trading | Constant-product AMM baseline | 30 bps fee, Normal mode |
+| Agent 1 Update | AI-driven fee adjustment | 30 → 50 bps (volatility detected) |
+| Agent 2 Update | Defensive mode activation | 50 → 80 bps, Defensive curve |
+| Whale Trade | Quadratic penalty | 12%+ price impact vs ~9% normal |
+| Epoch Competition | 2 agents scored by APS | Winner's params auto-applied |
+| Epoch Winner | Auto-apply best strategy | Fee → 45 bps, VolatilityAdaptive |
+| Protocol Fees | Treasury collection | 10% of swap fees accumulated |
+| Emergency Pause | Owner safety valve | Swaps blocked, LP exit allowed |
 
 ## Prerequisites
 
 - Node.js ≥ 18
-- BSC Testnet wallet with tBNB (use [BNB Faucet](https://testnet.bnbchain.org/faucet-smart))
-- BscScan API key (for verification)
+- `npm install` (root, agent, frontend)
 
-## Quick Demo (Local Hardhat)
+## Local Demo (Hardhat)
 
 ```bash
-# 1. Install deps
 npm install
-
-# 2. Run all contract tests
-npx hardhat test
-
-# 3. Deploy locally
-npx hardhat run scripts/deploy.ts
-
-# 4. Check deployment.json for addresses
-cat deployment.json
+npx hardhat run scripts/demo-local.ts   # same as ./demo.sh
 ```
 
-## Full Testnet Demo
+## Full Testnet Demo (BSC Testnet)
 
 ### Step 1: Deploy to BSC Testnet
 
 ```bash
-# Set up .env
 cp .env.example .env
 # Edit .env: add PRIVATE_KEY, BSC_TESTNET_RPC, BSCSCAN_API_KEY
 
-# Deploy
 npx hardhat run scripts/deploy.ts --network bscTestnet
-
-# Verify on BscScan
 npx hardhat run scripts/verify.ts --network bscTestnet
 ```
 
-### Step 2: Configure Agent
+### Step 2: Configure & Run Agent
 
 ```bash
 cd agent
 cp .env.example .env
-# Edit .env:
-#   AGENT_PRIVATE_KEY=<your agent wallet key>
-#   EVOPOOL_ADDRESS=<from deployment.json>
-#   AGENT_CONTROLLER_ADDRESS=<from deployment.json>
+# Edit: AGENT_PRIVATE_KEY, EVOPOOL_ADDRESS, AGENT_CONTROLLER_ADDRESS
 
 npm install
+npm run dev:once          # single epoch, live
 ```
 
-### Step 3: Run Agent (Single Epoch)
+### Step 3: Start Frontend
 
 ```bash
-# Dry-run first (no transaction)
-npm run dev:once -- --dry-run
-
-# Live run (submits tx to testnet)
-npm run dev:once
-```
-
-### Step 4: Start Frontend
-
-```bash
-cd ../frontend
+cd frontend
 cp .env.example .env.local
-# Edit .env.local with addresses from deployment.json
+# Add contract addresses from deployment.json
 
-npm install
-npm run dev
+npm install && npm run dev
 # Open http://localhost:3000
 ```
 
-### Step 5: Verify Results
-
-1. Check BscScan for the `AgentUpdateProposed` event
-2. Check frontend Pool page — fee/mode should reflect the update
-3. Check `agent/updates/` for JSON summary files
-4. Check `agent/state/aps.json` for APS snapshot
-
-## Demo Narration (2–3 minutes)
+## Demo Narration Script (2–3 minutes)
 
 ### Opening (30s)
-> "Every AMM on BNB is static. Fees don't adapt. Curves don't react. Whales nuke pools. EvoArena fixes this with autonomous AI agents that control liquidity parameters in real-time."
+> "Every AMM on BNB is static — fees don't adapt, curves don't react, and whales nuke pools. EvoArena fixes this with autonomous AI agents that control liquidity parameters in real-time."
 
-### Show Architecture (30s)
-> "Here's our stack: EvoPool is the AMM with 3 curve modes — Normal, Defensive, and VolatilityAdaptive. AgentController enforces bounds, cooldowns, and slashing. Our off-chain agent computes volatility, detects whales, and submits bounded parameter updates."
+### Architecture (30s)
+> "Our stack: EvoPool is the AMM with 3 curve modes — Normal, Defensive, and VolatilityAdaptive. AgentController enforces bounds, cooldowns, and slashing. The off-chain agent computes volatility, detects whales, and submits bounded parameter updates. EpochManager runs competitive epochs where agents' strategies are scored and the best one wins."
 
 ### Live Demo (60s)
-1. Show pool state on dashboard (fee=30bps, mode=Normal)
-2. Click "Run Demo Epoch" on demo panel
-3. Show agent log output — rule fired, params suggested
-4. Show updated pool state — fee changed, mode switched
-5. Show BscScan tx link
+1. Run `./demo.sh` — show the terminal output scrolling through all 11 steps
+2. Point out fee changing from 30 → 50 → 80 → 45 bps
+3. Show whale trade penalty: 12% price impact in Defensive mode
+4. Show epoch winner auto-applied to pool
+5. Show emergency pause blocking swaps but allowing LP exit
 
 ### Comparison (30s)
-> "Static AMM: fixed 30bps fee, no whale defense, slippage spikes. EvoPool: dynamic fees up to 50bps during volatility, Defensive mode quadratically penalizes whale trades, VolatilityAdaptive widens spreads to protect LPs."
+> "Static AMM: fixed 30bps, no whale defense, slippage spikes. EvoPool: dynamic fees, Defensive mode quadratically penalizes whales, VolatilityAdaptive widens spreads to protect LPs. Capital efficiency improves because the pool literally learns."
 
 ### Close (30s)
-> "EvoArena turns liquidity into a competitive AI marketplace. Capital flows to performance. Weak strategies die. Strong ones dominate. This is the future of AMMs on BNB."
-
-## Expected Transaction Hashes
-
-After running the demo, transaction hashes will be in:
-- `deployment.json` — contract deployments
-- `agent/updates/*.json` — parameter update summaries
-- Frontend demo log — visible on demo panel
+> "EvoArena turns liquidity into a competitive AI marketplace. Capital flows to performance. Weak strategies get outcompeted. This is the future of AMMs on BNB Chain."
