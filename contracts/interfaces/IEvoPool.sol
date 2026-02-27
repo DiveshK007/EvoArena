@@ -27,6 +27,7 @@ interface IEvoPool {
     function swap(bool zeroForOne, uint256 amountIn, uint256 minAmountOut) external returns (uint256 amountOut);
     function addLiquidity(uint256 amount0, uint256 amount1) external returns (uint256 liquidity);
     function removeLiquidity(uint256 liquidity) external returns (uint256 amount0, uint256 amount1);
+    function updateParameters(uint256 _feeBps, uint256 _curveBeta, CurveMode _curveMode, address _agent) external;
     function feeBps() external view returns (uint256);
     function curveBeta() external view returns (uint256);
     function curveMode() external view returns (CurveMode);

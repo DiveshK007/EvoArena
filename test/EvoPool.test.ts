@@ -217,7 +217,8 @@ describe("EvoPool", function () {
       await pool.connect(controller).updateParameters(
         INITIAL_FEE_BPS,
         INITIAL_BETA,
-        1 // Defensive
+        1, // Defensive
+        controller.address
       );
     });
 
@@ -253,7 +254,8 @@ describe("EvoPool", function () {
       await pool.connect(controller).updateParameters(
         INITIAL_FEE_BPS,
         INITIAL_BETA,
-        2 // VolatilityAdaptive
+        2, // VolatilityAdaptive
+        controller.address
       );
     });
 
@@ -271,7 +273,7 @@ describe("EvoPool", function () {
 
   describe("Parameter Updates", function () {
     it("should allow controller to update parameters", async function () {
-      await pool.connect(controller).updateParameters(50, 7000, 1);
+      await pool.connect(controller).updateParameters(50, 7000, 1, controller.address);
 
       expect(await pool.feeBps()).to.equal(50);
       expect(await pool.curveBeta()).to.equal(7000);
@@ -280,13 +282,13 @@ describe("EvoPool", function () {
 
     it("should reject non-controller", async function () {
       await expect(
-        pool.connect(trader).updateParameters(50, 7000, 1)
+        pool.connect(trader).updateParameters(50, 7000, 1, trader.address)
       ).to.be.revertedWithCustomError(pool, "OnlyController");
     });
 
     it("should reject fee above MAX_FEE_BPS", async function () {
       await expect(
-        pool.connect(controller).updateParameters(501, 5000, 0)
+        pool.connect(controller).updateParameters(501, 5000, 0, controller.address)
       ).to.be.revertedWithCustomError(pool, "FeeTooHigh");
     });
 
@@ -295,12 +297,12 @@ describe("EvoPool", function () {
       // when casting an out-of-range uint8 to a CurveMode enum,
       // so we just expect any revert here.
       await expect(
-        pool.connect(controller).updateParameters(30, 5000, 3)
+        pool.connect(controller).updateParameters(30, 5000, 3, controller.address)
       ).to.be.reverted;
     });
 
     it("should emit ParametersUpdated event", async function () {
-      await expect(pool.connect(controller).updateParameters(45, 6000, 2))
+      await expect(pool.connect(controller).updateParameters(45, 6000, 2, controller.address))
         .to.emit(pool, "ParametersUpdated")
         .withArgs(45, 6000, 2, controller.address);
     });

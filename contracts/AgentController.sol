@@ -153,7 +153,8 @@ contract AgentController is IAgentController, ReentrancyGuard, Ownable {
         pool.updateParameters(
             newFeeBps,
             newCurveBeta,
-            IEvoPool.CurveMode(newCurveMode)
+            IEvoPool.CurveMode(newCurveMode),
+            msg.sender
         );
 
         emit AgentUpdateProposed(

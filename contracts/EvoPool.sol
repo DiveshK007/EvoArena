@@ -222,11 +222,13 @@ contract EvoPool is IEvoPool, ReentrancyGuard, Ownable {
     /**
      * @notice Update pool parameters. Only callable by the AgentController.
      * @dev Bounds are enforced in AgentController; pool does a final cap check.
+     * @param _agent The address of the agent that proposed this update.
      */
     function updateParameters(
         uint256 _feeBps,
         uint256 _curveBeta,
-        CurveMode _curveMode
+        CurveMode _curveMode,
+        address _agent
     ) external onlyController {
         if (_feeBps > MAX_FEE_BPS) revert FeeTooHigh();
         if (uint8(_curveMode) > 2) revert InvalidCurveMode();
@@ -235,7 +237,7 @@ contract EvoPool is IEvoPool, ReentrancyGuard, Ownable {
         curveBeta = _curveBeta;
         curveMode = _curveMode;
 
-        emit ParametersUpdated(_feeBps, _curveBeta, _curveMode, msg.sender);
+        emit ParametersUpdated(_feeBps, _curveBeta, _curveMode, _agent);
     }
 
     // ── Internal: Curve application ─────────────────────────────────────
