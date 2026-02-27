@@ -102,4 +102,4 @@ export const ADDRESSES = {
 };
 
 export const BSC_TESTNET_CHAIN_ID = Number(process.env.NEXT_PUBLIC_CHAIN_ID) || 97;
-export const BSC_TESTNET_RPC = process.env.NEXT_PUBLIC_RPC_URL || "https://data-seed-prebsc-1-s1.binance.org:8545/";
+export const BSC_TESTNET_RPC = process.env.NEXT_PUBLIC_RPC_URL || "https://bsc-testnet-rpc.publicnode.com";
