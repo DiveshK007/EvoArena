@@ -48,8 +48,12 @@ export async function connectWallet(
   // ── WalletConnect ──────────────────────────────────────────────────
   if (type === "walletconnect") {
     try {
-      // Dynamic import — only loaded when WalletConnect is selected
-      const { EthereumProvider } = await import("@walletconnect/ethereum-provider");
+      // Dynamic import hidden from webpack static analysis
+      // Install: npm i @walletconnect/ethereum-provider
+      const modPath = "@walletconnect/ethereum-provider";
+      const mod = await import(/* webpackIgnore: true */ modPath);
+      const EthereumProvider = mod.EthereumProvider || mod.default?.EthereumProvider;
+      if (!EthereumProvider) throw new Error("WalletConnect package not found. Run: npm i @walletconnect/ethereum-provider");
       const wcProvider = await EthereumProvider.init({
         projectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID || "PLACEHOLDER",
         chains: [BSC_TESTNET_CHAIN_ID],
@@ -66,7 +70,7 @@ export async function connectWallet(
     } catch (err: any) {
       console.error("WalletConnect error:", err);
       alert(
-        "WalletConnect failed. Install @walletconnect/ethereum-provider or provide a WC project ID."
+        "WalletConnect is not available. Use MetaMask instead, or install: npm i @walletconnect/ethereum-provider"
       );
       return null;
     }

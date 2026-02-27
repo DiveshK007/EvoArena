@@ -24,6 +24,9 @@ const config: HardhatUserConfig = {
   },
   networks: {
     hardhat: {},
+    localhost: {
+      url: "http://127.0.0.1:8545",
+    },
     bscTestnet: {
       url: BSC_TESTNET_RPC,
       chainId: 97,

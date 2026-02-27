@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ethers } from "ethers";
 import { useWallet } from "@/hooks/useWallet";
 import { usePoolState } from "@/hooks/useEvoPool";
-import { EVOPOOL_ABI, ERC20_ABI, ADDRESSES } from "@/lib/contracts";
+import { EVOPOOL_ABI, ERC20_ABI, ADDRESSES, BSC_TESTNET_RPC } from "@/lib/contracts";
 
 export default function LiquidityPage() {
   const { signer, connected, connect, address } = useWallet();
@@ -22,7 +22,7 @@ export default function LiquidityPage() {
   const fetchLPBalance = async () => {
     if (!connected || !address) return;
     try {
-      const pool = new ethers.Contract(ADDRESSES.evoPool, EVOPOOL_ABI, new ethers.JsonRpcProvider("https://data-seed-prebsc-1-s1.binance.org:8545/"));
+      const pool = new ethers.Contract(ADDRESSES.evoPool, EVOPOOL_ABI, new ethers.JsonRpcProvider(BSC_TESTNET_RPC));
       const bal = await pool.balanceOf(address);
       setLpBalance(ethers.formatEther(bal));
     } catch { setLpBalance("0"); }
