@@ -37,6 +37,7 @@ contract AgentController is IAgentController, ReentrancyGuard, Ownable {
     // ── Agent state ─────────────────────────────────────────────────────
     mapping(address => AgentInfo) private agents;
     address[] public agentList;
+    mapping(address => uint256) public updateCount; // total updates per agent
 
     // ── Pause ───────────────────────────────────────────────────────────
     bool public paused;
@@ -52,6 +53,7 @@ contract AgentController is IAgentController, ReentrancyGuard, Ownable {
     error Paused();
     error InsufficientSlashAmount();
     error TransferFailed();
+    error ZeroAmount();
 
     modifier whenNotPaused() {
         if (paused) revert Paused();
@@ -110,6 +112,34 @@ contract AgentController is IAgentController, ReentrancyGuard, Ownable {
         emit AgentRegistered(msg.sender, msg.value);
     }
 
+    /**
+     * @notice Deregister and withdraw remaining bond.
+     *         Agent must be active. Bond is returned in full (minus any slashes).
+     */
+    function deregisterAgent() external override nonReentrant whenNotPaused onlyRegistered {
+        AgentInfo storage info = agents[msg.sender];
+        uint256 bondToReturn = info.bondAmount;
+
+        info.active = false;
+        info.bondAmount = 0;
+
+        if (bondToReturn > 0) {
+            (bool ok, ) = msg.sender.call{value: bondToReturn}("");
+            if (!ok) revert TransferFailed();
+        }
+
+        emit AgentDeregistered(msg.sender, bondToReturn);
+    }
+
+    /**
+     * @notice Top up an existing agent's bond.
+     */
+    function topUpBond() external payable override nonReentrant whenNotPaused onlyRegistered {
+        if (msg.value == 0) revert ZeroAmount();
+        agents[msg.sender].bondAmount += msg.value;
+        emit BondTopUp(msg.sender, msg.value, agents[msg.sender].bondAmount);
+    }
+
     // ── Parameter Submission ────────────────────────────────────────────
 
     /**
@@ -149,6 +179,7 @@ contract AgentController is IAgentController, ReentrancyGuard, Ownable {
 
         // ── Apply ───────────────────────────────────────────────────────
         agent.lastUpdateTime = block.timestamp;
+        updateCount[msg.sender]++;
 
         pool.updateParameters(
             newFeeBps,

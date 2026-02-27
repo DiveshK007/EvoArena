@@ -1,7 +1,9 @@
 "use client";
 
+import { useState, useEffect, useRef } from "react";
 import { usePoolState, useParameterHistory } from "@/hooks/useEvoPool";
 import { CURVE_MODES } from "@/lib/contracts";
+import { FeeHistoryChart, ModeTimelineChart, ReserveChart, ReserveSnapshot } from "@/components/Charts";
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -25,6 +27,24 @@ function Stat({ label, value, sub }: { label: string; value: string; sub?: strin
 export default function PoolPage() {
   const { state, loading, error } = usePoolState(8000);
   const paramHistory = useParameterHistory();
+
+  // Accumulate reserve snapshots for the live chart
+  const [reserveSnapshots, setReserveSnapshots] = useState<ReserveSnapshot[]>([]);
+  const prevTradeCount = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!state) return;
+    // Only push a new snapshot if something changed
+    const r0 = Number(state.reserve0);
+    const r1 = Number(state.reserve1);
+    setReserveSnapshots((prev) => {
+      const last = prev[prev.length - 1];
+      if (last && last.reserve0 === r0 && last.reserve1 === r1) return prev;
+      const next = [...prev, { timestamp: Date.now(), reserve0: r0, reserve1: r1 }];
+      return next.length > 100 ? next.slice(-100) : next;
+    });
+    prevTradeCount.current = state.tradeCount;
+  }, [state]);
 
   if (error) {
     return (
@@ -88,7 +108,22 @@ export default function PoolPage() {
         </Card>
       </div>
 
-      {/* Parameter History */}
+      {/* Charts Row 1: Fee/Beta History + Reserve Balances */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card title="📈 Fee & Beta History">
+          <FeeHistoryChart data={paramHistory} />
+        </Card>
+        <Card title="💰 Reserve Balances (Live)">
+          <ReserveChart data={reserveSnapshots} />
+        </Card>
+      </div>
+
+      {/* Charts Row 2: Mode Timeline */}
+      <Card title="🔀 Curve Mode Timeline">
+        <ModeTimelineChart data={paramHistory} />
+      </Card>
+
+      {/* Parameter History Table */}
       <Card title="Recent Parameter Updates">
         {paramHistory.length === 0 ? (
           <p className="text-[var(--muted)] text-sm">No parameter updates found in recent blocks</p>

@@ -271,4 +271,93 @@ describe("AgentController", function () {
       ).to.be.revertedWithCustomError(controller, "OwnableUnauthorizedAccount");
     });
   });
+
+  describe("Deregistration", function () {
+    it("should allow agent to deregister and withdraw bond", async function () {
+      await controller.connect(agent1).registerAgent({ value: MIN_BOND });
+      const balBefore = await ethers.provider.getBalance(agent1.address);
+
+      const tx = await controller.connect(agent1).deregisterAgent();
+      const receipt = await tx.wait();
+      const gasUsed = BigInt(receipt!.gasUsed) * BigInt(receipt!.gasPrice ?? tx.gasPrice ?? 0n);
+      const balAfter = await ethers.provider.getBalance(agent1.address);
+
+      // Bond should be returned minus gas
+      expect(balAfter + gasUsed - balBefore).to.equal(MIN_BOND);
+
+      const info = await controller.getAgentInfo(agent1.address);
+      expect(info.active).to.be.false;
+      expect(info.bondAmount).to.equal(0);
+    });
+
+    it("should emit AgentDeregistered event", async function () {
+      await controller.connect(agent1).registerAgent({ value: MIN_BOND });
+      await expect(controller.connect(agent1).deregisterAgent())
+        .to.emit(controller, "AgentDeregistered")
+        .withArgs(agent1.address, MIN_BOND);
+    });
+
+    it("should reject deregister from non-registered agent", async function () {
+      await expect(
+        controller.connect(outsider).deregisterAgent()
+      ).to.be.revertedWithCustomError(controller, "NotRegistered");
+    });
+
+    it("should reject parameter updates after deregister", async function () {
+      await controller.connect(agent1).registerAgent({ value: MIN_BOND });
+      await controller.connect(agent1).deregisterAgent();
+      await expect(
+        controller.connect(agent1).submitParameterUpdate(INITIAL_FEE + 5n, INITIAL_BETA, 0)
+      ).to.be.revertedWithCustomError(controller, "NotRegistered");
+    });
+  });
+
+  describe("Bond Top-Up", function () {
+    it("should allow agent to top up bond", async function () {
+      await controller.connect(agent1).registerAgent({ value: MIN_BOND });
+      const topUp = ethers.parseEther("0.05");
+      await controller.connect(agent1).topUpBond({ value: topUp });
+
+      const info = await controller.getAgentInfo(agent1.address);
+      expect(info.bondAmount).to.equal(MIN_BOND + topUp);
+    });
+
+    it("should emit BondTopUp event", async function () {
+      await controller.connect(agent1).registerAgent({ value: MIN_BOND });
+      const topUp = ethers.parseEther("0.02");
+      await expect(controller.connect(agent1).topUpBond({ value: topUp }))
+        .to.emit(controller, "BondTopUp")
+        .withArgs(agent1.address, topUp, MIN_BOND + topUp);
+    });
+
+    it("should reject zero amount top-up", async function () {
+      await controller.connect(agent1).registerAgent({ value: MIN_BOND });
+      await expect(
+        controller.connect(agent1).topUpBond({ value: 0 })
+      ).to.be.revertedWithCustomError(controller, "ZeroAmount");
+    });
+
+    it("should reject top-up from non-registered agent", async function () {
+      await expect(
+        controller.connect(outsider).topUpBond({ value: MIN_BOND })
+      ).to.be.revertedWithCustomError(controller, "NotRegistered");
+    });
+  });
+
+  describe("Update Tracking", function () {
+    it("should track update count per agent", async function () {
+      await controller.connect(agent1).registerAgent({ value: MIN_BOND });
+      expect(await controller.updateCount(agent1.address)).to.equal(0);
+
+      await controller.connect(agent1).submitParameterUpdate(INITIAL_FEE + 5n, INITIAL_BETA, 0);
+      expect(await controller.updateCount(agent1.address)).to.equal(1);
+
+      // Wait for cooldown
+      await ethers.provider.send("evm_increaseTime", [COOLDOWN + 1]);
+      await ethers.provider.send("evm_mine", []);
+
+      await controller.connect(agent1).submitParameterUpdate(INITIAL_FEE + 10n, INITIAL_BETA, 0);
+      expect(await controller.updateCount(agent1.address)).to.equal(2);
+    });
+  });
 });

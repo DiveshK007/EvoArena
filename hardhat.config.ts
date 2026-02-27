@@ -38,6 +38,7 @@ const config: HardhatUserConfig = {
     cache: "./cache",
     artifacts: "./artifacts",
   },
+  // solidity-coverage is included via hardhat-toolbox
 };
 
 export default config;

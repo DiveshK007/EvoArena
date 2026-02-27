@@ -24,10 +24,13 @@ export const EVOPOOL_ABI = [
 
 export const CONTROLLER_ABI = [
   "function registerAgent() payable",
+  "function deregisterAgent()",
+  "function topUpBond() payable",
   "function submitParameterUpdate(uint256 newFeeBps, uint256 newCurveBeta, uint8 newCurveMode)",
   "function getAgentInfo(address) view returns (tuple(address agentAddress, uint256 bondAmount, uint256 registeredAt, uint256 lastUpdateTime, bool active))",
   "function getAgentCount() view returns (uint256)",
   "function agentList(uint256) view returns (address)",
+  "function updateCount(address) view returns (uint256)",
   "function cooldownSeconds() view returns (uint256)",
   "function minBond() view returns (uint256)",
   "function maxFeeDelta() view returns (uint256)",
@@ -35,6 +38,8 @@ export const CONTROLLER_ABI = [
   "function paused() view returns (bool)",
   "function pool() view returns (address)",
   "event AgentRegistered(address indexed agent, uint256 bondAmount)",
+  "event AgentDeregistered(address indexed agent, uint256 bondReturned)",
+  "event BondTopUp(address indexed agent, uint256 amount, uint256 newTotal)",
   "event AgentUpdateProposed(address indexed agent, uint256 newFeeBps, uint256 newCurveBeta, uint8 newCurveMode, uint256 timestamp)",
   "event AgentSlashed(address indexed agent, uint256 slashAmount, string reason)",
 ] as const;

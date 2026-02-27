@@ -1,10 +1,71 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useAgents, useParameterHistory } from "@/hooks/useEvoPool";
+import { APSChart, APSDataPoint } from "@/components/Charts";
+
+interface APSSnapshot {
+  epoch: number;
+  aps: number;
+  lpReturnDelta: number;
+  slippageReduction: number;
+  volatilityCompression: number;
+  feeRevenue: number;
+  agentAddress: string;
+  timestamp: string;
+}
 
 export default function AgentsPage() {
   const { agents, loading } = useAgents();
   const paramHistory = useParameterHistory();
+  const [apsData, setApsData] = useState<APSSnapshot[]>([]);
+  const [apsLoading, setApsLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("/api/aps");
+        const json = await res.json();
+        setApsData(json.snapshots || []);
+      } catch (e) {
+        console.error("Failed to load APS data:", e);
+      } finally {
+        setApsLoading(false);
+      }
+    })();
+  }, []);
+
+  // Aggregate APS by agent for leaderboard
+  const leaderboard = apsData.reduce<Record<string, { total: number; count: number; latest: number; best: number }>>((acc, s) => {
+    const addr = s.agentAddress;
+    if (!acc[addr]) acc[addr] = { total: 0, count: 0, latest: 0, best: 0 };
+    acc[addr].total += s.aps;
+    acc[addr].count++;
+    acc[addr].latest = s.aps;
+    acc[addr].best = Math.max(acc[addr].best, s.aps);
+    return acc;
+  }, {});
+
+  const sortedLeaderboard = Object.entries(leaderboard)
+    .map(([addr, stats]) => ({
+      address: addr,
+      avgAps: stats.count > 0 ? stats.total / stats.count : 0,
+      latestAps: stats.latest,
+      bestAps: stats.best,
+      epochs: stats.count,
+    }))
+    .sort((a, b) => b.avgAps - a.avgAps);
+
+  // Chart data
+  const apsChartData: APSDataPoint[] = apsData.map((s) => ({
+    epoch: s.epoch,
+    aps: s.aps,
+    lpReturnDelta: s.lpReturnDelta,
+    slippageReduction: s.slippageReduction,
+    volatilityCompression: s.volatilityCompression,
+    feeRevenue: s.feeRevenue,
+    agentAddress: s.agentAddress,
+  }));
 
   return (
     <div className="space-y-6">
@@ -25,6 +86,7 @@ export default function AgentsPage() {
             const agentUpdates = paramHistory.filter(
               (e) => e.agent.toLowerCase() === agent.address.toLowerCase()
             );
+            const agentAps = leaderboard[agent.address];
             return (
               <div key={i} className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-5">
                 <div className="flex items-center justify-between mb-3">
@@ -36,7 +98,7 @@ export default function AgentsPage() {
                     Bond: {agent.bondAmount} BNB
                   </span>
                 </div>
-                <div className="grid grid-cols-3 gap-4 text-sm">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
                   <div>
                     <div className="text-[var(--muted)]">Registered</div>
                     <div>{new Date(agent.registeredAt * 1000).toLocaleString()}</div>
@@ -53,6 +115,20 @@ export default function AgentsPage() {
                     <div className="text-[var(--muted)]">Updates</div>
                     <div>{agentUpdates.length}</div>
                   </div>
+                  <div>
+                    <div className="text-[var(--muted)]">Avg APS</div>
+                    <div className="text-[var(--accent)] font-bold">
+                      {agentAps && agentAps.count > 0
+                        ? (agentAps.total / agentAps.count).toFixed(4)
+                        : "—"}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[var(--muted)]">Best APS</div>
+                    <div className="text-[var(--green)] font-bold">
+                      {agentAps && agentAps.best > 0 ? agentAps.best.toFixed(4) : "—"}
+                    </div>
+                  </div>
                 </div>
               </div>
             );
@@ -60,16 +136,57 @@ export default function AgentsPage() {
         </div>
       )}
 
-      {/* APS Leaderboard placeholder */}
+      {/* APS Leaderboard */}
       <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-5">
         <h3 className="text-sm font-semibold text-[var(--muted)] mb-3 uppercase tracking-wider">
-          APS Leaderboard
+          🏆 APS Leaderboard
         </h3>
-        <p className="text-[var(--muted)] text-sm">
-          Agent Performance Scores are computed off-chain each epoch and saved to{" "}
-          <code className="text-[var(--accent)]">agent/state/aps.json</code>.
-          Connect APS feed for live rankings.
-        </p>
+        {sortedLeaderboard.length === 0 ? (
+          <p className="text-[var(--muted)] text-sm">
+            {apsLoading
+              ? "Loading APS data…"
+              : "No APS scores recorded yet. Run the agent to generate scores."}
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-[var(--muted)] text-left">
+                  <th className="pb-2">Rank</th>
+                  <th className="pb-2">Agent</th>
+                  <th className="pb-2">Avg APS</th>
+                  <th className="pb-2">Best APS</th>
+                  <th className="pb-2">Latest APS</th>
+                  <th className="pb-2">Epochs</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedLeaderboard.map((entry, i) => (
+                  <tr key={entry.address} className="border-t border-[var(--border)]">
+                    <td className="py-2">
+                      <span className={`font-bold ${i === 0 ? "text-[var(--yellow)]" : i === 1 ? "text-gray-400" : i === 2 ? "text-amber-700" : ""}`}>
+                        #{i + 1}
+                      </span>
+                    </td>
+                    <td className="py-2 font-mono text-xs">{entry.address.slice(0, 10)}…{entry.address.slice(-6)}</td>
+                    <td className="py-2 font-bold text-[var(--accent)]">{entry.avgAps.toFixed(4)}</td>
+                    <td className="py-2 text-[var(--green)]">{entry.bestAps.toFixed(4)}</td>
+                    <td className="py-2">{entry.latestAps.toFixed(4)}</td>
+                    <td className="py-2">{entry.epochs}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* APS Chart */}
+      <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-5">
+        <h3 className="text-sm font-semibold text-[var(--muted)] mb-3 uppercase tracking-wider">
+          📊 APS Over Epochs
+        </h3>
+        <APSChart data={apsChartData} />
       </div>
     </div>
   );

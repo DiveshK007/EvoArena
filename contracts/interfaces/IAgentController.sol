@@ -22,7 +22,9 @@ interface IAgentController {
     }
 
     event AgentRegistered(address indexed agent, uint256 bondAmount);
+    event AgentDeregistered(address indexed agent, uint256 bondReturned);
     event AgentSlashed(address indexed agent, uint256 slashAmount, string reason);
+    event BondTopUp(address indexed agent, uint256 amount, uint256 newTotal);
     event AgentUpdateProposed(
         address indexed agent,
         uint256 newFeeBps,
@@ -32,6 +34,8 @@ interface IAgentController {
     );
 
     function registerAgent() external payable;
+    function deregisterAgent() external;
+    function topUpBond() external payable;
     function submitParameterUpdate(
         uint256 newFeeBps,
         uint256 newCurveBeta,

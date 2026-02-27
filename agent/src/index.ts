@@ -71,20 +71,31 @@ async function runEpoch(executor: Executor, volCalc: VolatilityCalculator): Prom
   const staticFee = config.baseFeeBps;
   const agentFee = suggestion.newFeeBps;
 
-  // Simple LP return proxy: higher fee = more revenue for LPs
-  const staticLpReturn = staticFee * state.tradeCount;
-  const agentLpReturn = agentFee * state.tradeCount;
+  // ── Improved APS estimation using real on-chain data ──────────────
+  // LP return: fee revenue proxy = fee_bps × cumulative_volume / 10000
+  const totalVolume = Number(state.cumulativeVolume0) + Number(state.cumulativeVolume1);
+  const staticLpReturn = totalVolume > 0 ? (staticFee / 10000) * totalVolume : staticFee * state.tradeCount;
+  const agentLpReturn = totalVolume > 0 ? (agentFee / 10000) * totalVolume : agentFee * state.tradeCount;
 
-  // Slippage proxy: defensive/adaptive modes reduce large-trade slippage
-  const staticSlippage = 0.01;
-  const agentSlippage = suggestion.newCurveMode > 0 ? 0.007 : 0.01;
+  // Slippage: compute average price impact from recent swaps
+  const avgTradeSize = features.avgTradeSize;
+  const reserveTotal = Number(state.reserve0) + Number(state.reserve1);
+  const tradeDepthRatio = reserveTotal > 0 ? avgTradeSize / (reserveTotal / 2) : 0;
+  // Static slippage: pure constant-product → impact ≈ tradeSize/reserve
+  const staticSlippage = tradeDepthRatio;
+  // Agent slippage: defensive/adaptive modes shift the curve to reduce large-trade impact
+  const agentSlippage = suggestion.newCurveMode === 1
+    ? tradeDepthRatio * 0.6  // Defensive: quadratic penalty redirects, reducing effective slippage
+    : suggestion.newCurveMode === 2
+      ? tradeDepthRatio * 0.75 // VolAdaptive: linear spread widening partially absorbs slippage
+      : tradeDepthRatio;
 
-  // Volatility proxy
-  const staticVol = features.volatility;
+  // Volatility: use EMA from real swap data
+  const staticVol = features.volatility; // baseline: uncontrolled volatility
   const agentVol = suggestion.newCurveMode === 2
-    ? features.volatility * 0.7 // adaptive reduces vol ~30%
+    ? features.volatility * (1 - 0.3 * Math.min(1, suggestion.newCurveBeta / 10000)) // adaptive reduces proportional to beta
     : suggestion.newCurveMode === 1
-      ? features.volatility * 0.8 // defensive reduces vol ~20%
+      ? features.volatility * (1 - 0.2 * Math.min(1, suggestion.newCurveBeta / 10000)) // defensive reduces whales → less vol
       : features.volatility;
 
   const apsSnapshot = computeAPS(
@@ -94,8 +105,8 @@ async function runEpoch(executor: Executor, volCalc: VolatilityCalculator): Prom
     agentSlippage,
     staticVol,
     agentVol,
-    agentFee * state.tradeCount * 0.01,
-    state.tradeCount * 100, // rough volume
+    agentFee * (totalVolume > 0 ? totalVolume / 1e18 : state.tradeCount) * 0.01,
+    totalVolume > 0 ? totalVolume / 1e18 : state.tradeCount * 100,
     epoch,
     executor.agentAddress
   );
