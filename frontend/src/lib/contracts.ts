@@ -34,7 +34,7 @@ export const EVOPOOL_ABI = [
   "event LiquidityAdded(address indexed provider, uint256 amount0, uint256 amount1, uint256 liquidity)",
   "event LiquidityRemoved(address indexed provider, uint256 amount0, uint256 amount1, uint256 liquidity)",
   "event ParametersUpdated(uint256 newFeeBps, uint256 newCurveBeta, uint8 newMode, address indexed agent)",
-  "event ProtocolFeeCollected(uint256 amount0, uint256 amount1, address indexed treasury)",
+  "event ProtocolFeeCollected(address indexed treasury, uint256 amount0, uint256 amount1)",
 ] as const;
 
 export const CONTROLLER_ABI = [

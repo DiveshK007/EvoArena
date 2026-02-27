@@ -34,7 +34,7 @@ export function WalletButton() {
 
   return (
     <button
-      onClick={connect}
+      onClick={() => connect()}
       className="px-4 py-1.5 rounded-lg bg-[var(--accent)] text-white text-xs font-semibold hover:bg-indigo-500 transition cursor-pointer"
     >
       Connect Wallet

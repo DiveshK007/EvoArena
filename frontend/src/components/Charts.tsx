@@ -8,6 +8,7 @@ import {
   Area,
   BarChart,
   Bar,
+  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -85,7 +86,7 @@ export function ModeTimelineChart({ data }: { data: ParameterEvent[] }) {
         <Tooltip contentStyle={tooltipStyle} formatter={(value: number) => modeNames[value] || value} />
         <Bar dataKey="mode" name="Curve Mode" radius={[4, 4, 0, 0]}>
           {chartData.map((entry, index) => (
-            <rect key={`cell-${index}`} fill={entry.fill} />
+            <Cell key={`cell-${index}`} fill={entry.fill} />
           ))}
         </Bar>
       </BarChart>
