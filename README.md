@@ -46,12 +46,13 @@ contracts/                Solidity smart contracts (Hardhat)
   EvoToken.sol            Minimal ERC-20 for protocol coordination
   interfaces/             Contract interfaces (IEvoPool, IAgentController, IEpochManager)
 
-test/                     Contract tests (Mocha + Chai, 128 passing)
+test/                     Contract tests (Mocha + Chai, 152 passing)
   AgentController.test.ts 45 tests — registration, updates, slashing, bonding
   EvoPool.test.ts         38 tests — liquidity, swaps, TWAP, protocol fees, pause
   EpochManager.test.ts    23 tests — epochs, proposals, finalization, rewards
   TimeLock.test.ts        9 tests — queue, execute, cancel, access control
   E2E.test.ts             13 tests — full lifecycle integration test
+  Invariant.test.ts       24 tests — K invariant, reserve positivity, TWAP monotonicity, LP proportionality, stress
 
 scripts/                  Deploy, verify & demo scripts
   deploy.ts               Full deployment with TimeLock governance transfer
@@ -163,7 +164,7 @@ npx hardhat compile
 
 ### 4. Run tests
 ```bash
-npx hardhat test          # 128 tests
+npx hardhat test          # 152 tests
 npx hardhat coverage      # Coverage report
 npm run test:gas          # Gas usage report
 ```
@@ -189,12 +190,12 @@ cd frontend && npm install && npm run dev
 ### 8. Full demo
 ```bash
 ./demo.sh          # Quick: live simulation only (~5s)
-./demo.sh full     # Full: compile + 128 tests + simulation + gas report
+./demo.sh full     # Full: compile + 152 tests + simulation + gas report
 ```
 
 ## 📊 Test Coverage
 
-128 tests passing across 5 test files.
+152 tests passing across 6 test files.
 
 | Contract | Statements | Branches | Functions | Lines |
 |----------|-----------|----------|-----------|-------|

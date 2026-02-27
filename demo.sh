@@ -16,7 +16,7 @@ if [ "$MODE" = "full" ]; then
   echo "✅ Compiled"
   echo ""
 
-  echo "▶ Step 2/4: Run 128 unit tests"
+  echo "▶ Step 2/4: Run 152 unit + invariant tests"
   npx hardhat test
   echo ""
 
@@ -45,7 +45,7 @@ else
   echo ""
   echo "  quick  — Run live simulation only (default, ~5s)"
   echo "  full   — Compile + test + simulation + gas report (~30s)"
-  echo "  test   — Run all 128 tests only"
+  echo "  test   — Run all 152 tests only"
   exit 1
 fi
 
