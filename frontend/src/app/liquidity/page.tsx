@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { PlusCircle, MinusCircle, Loader2, Wallet, Flame } from "lucide-react";
+import { TVLIcon } from "@/components/icons";
 import { ethers } from "ethers";
 import { useWallet } from "@/hooks/useWallet";
 import { usePoolState } from "@/hooks/useEvoPool";
@@ -127,8 +129,22 @@ export default function LiquidityPage() {
 
   return (
     <div className="max-w-lg mx-auto space-y-6">
-      <h1 className="text-3xl font-bold">💧 Liquidity</h1>
-      <p className="text-[var(--muted)]">Add or remove liquidity from EvoPool</p>
+      {/* Page Header */}
+      <div className="flex items-center gap-3">
+        <div
+          className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+          style={{
+            background: "linear-gradient(135deg, rgba(240,185,11,0.15) 0%, rgba(240,185,11,0.05) 100%)",
+            border: "1px solid rgba(240,185,11,0.15)",
+          }}
+        >
+          <TVLIcon className="w-5 h-5 text-bnb-gold" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-white">Liquidity</h1>
+          <p className="text-sm text-[#6b6b80]">Add or remove liquidity from EvoPool</p>
+        </div>
+      </div>
 
       {/* Pool info */}
       {state && (
@@ -182,15 +198,15 @@ export default function LiquidityPage() {
       <div className="flex rounded-lg overflow-hidden border border-[var(--border)]">
         <button
           onClick={() => setTab("add")}
-          className={`flex-1 py-2 text-sm font-semibold transition cursor-pointer ${tab === "add" ? "bg-[var(--accent)] text-white" : "bg-[var(--card)] text-[var(--muted)]"}`}
+          className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold transition cursor-pointer ${tab === "add" ? "bg-[var(--accent)] text-[#0B0E11]" : "bg-[var(--card)] text-[var(--muted)] hover:text-white"}`}
         >
-          ➕ Add Liquidity
+          <PlusCircle size={14} /> Add Liquidity
         </button>
         <button
           onClick={() => setTab("remove")}
-          className={`flex-1 py-2 text-sm font-semibold transition cursor-pointer ${tab === "remove" ? "bg-[var(--red)] text-white" : "bg-[var(--card)] text-[var(--muted)]"}`}
+          className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold transition cursor-pointer ${tab === "remove" ? "bg-[var(--red)] text-white" : "bg-[var(--card)] text-[var(--muted)] hover:text-white"}`}
         >
-          ➖ Remove Liquidity
+          <MinusCircle size={14} /> Remove Liquidity
         </button>
       </div>
 
@@ -224,8 +240,8 @@ export default function LiquidityPage() {
               className="w-full bg-[var(--bg)] border border-[var(--border)] rounded-lg px-4 py-3 text-lg font-bold focus:outline-none focus:border-[var(--accent)] transition" />
           </div>
           <button onClick={() => setShowConfirm("add")} disabled={submitting || !connected || (!amount0 || Number(amount0) <= 0) || (!amount1 || Number(amount1) <= 0)}
-            className={`w-full py-3 rounded-lg font-semibold text-white transition cursor-pointer ${submitting ? "bg-gray-600 cursor-not-allowed" : !connected ? "bg-gray-600 cursor-not-allowed text-gray-400" : "bg-[var(--green)] hover:bg-green-600"}`}>
-            {submitting ? "⏳ Adding…" : !connected ? "🔗 Connect wallet in navbar" : "💧 Add Liquidity"}
+            className={`w-full flex items-center justify-center gap-2 py-3 rounded-lg font-semibold text-white transition cursor-pointer ${submitting ? "bg-gray-600 cursor-not-allowed" : !connected ? "bg-gray-600 cursor-not-allowed text-gray-400" : "bg-[var(--green)] hover:bg-green-600"}`}>
+            {submitting ? <><Loader2 size={15} className="animate-spin" /> Adding…</> : !connected ? <><Wallet size={15} /> Connect wallet in navbar</> : <><PlusCircle size={15} /> Add Liquidity</>}
           </button>
         </div>
       )}
@@ -244,8 +260,8 @@ export default function LiquidityPage() {
             )}
           </div>
           <button onClick={() => setShowConfirm("remove")} disabled={submitting || !connected || (!lpAmount || Number(lpAmount) <= 0)}
-            className={`w-full py-3 rounded-lg font-semibold text-white transition cursor-pointer ${submitting ? "bg-gray-600 cursor-not-allowed" : !connected ? "bg-gray-600 cursor-not-allowed text-gray-400" : "bg-[var(--red)] hover:bg-red-600"}`}>
-            {submitting ? "⏳ Removing…" : !connected ? "🔗 Connect wallet in navbar" : "🔥 Remove Liquidity"}
+            className={`w-full flex items-center justify-center gap-2 py-3 rounded-lg font-semibold text-white transition cursor-pointer ${submitting ? "bg-gray-600 cursor-not-allowed" : !connected ? "bg-gray-600 cursor-not-allowed text-gray-400" : "bg-[var(--red)] hover:bg-red-600"}`}>
+            {submitting ? <><Loader2 size={15} className="animate-spin" /> Removing…</> : !connected ? <><Wallet size={15} /> Connect wallet in navbar</> : <><Flame size={15} /> Remove Liquidity</>}
           </button>
         </div>
       )}

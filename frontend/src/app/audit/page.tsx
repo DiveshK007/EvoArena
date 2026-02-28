@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { RefreshCw, ExternalLink, Settings2, FilePlus2, BarChart2, Lightbulb, Inbox } from "lucide-react";
 import { useGreenfield } from "@/hooks/useGreenfield";
 import { getObjectUrl, EVOARENA_BUCKET, GREENFIELD_SP_ENDPOINT, type AgentStrategyLog } from "@/lib/greenfield";
+import { ShieldIcon } from "@/components/icons";
 
 interface LogEntry {
   objectName: string;
@@ -80,43 +82,48 @@ export default function AuditPage() {
 
   const filteredLogs = filter
     ? logs.filter(
-        (l) =>
-          l.objectName.toLowerCase().includes(filter.toLowerCase()) ||
-          extractAgent(l.objectName).includes(filter.toLowerCase())
-      )
+      (l) =>
+        l.objectName.toLowerCase().includes(filter.toLowerCase()) ||
+        extractAgent(l.objectName).includes(filter.toLowerCase())
+    )
     : logs;
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
+      {/* Page Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="text-3xl font-bold">
-            📋 <span className="text-[var(--accent)]">Audit Trail</span>
-          </h1>
-          <p className="text-[var(--muted)] text-sm mt-1">
-            Agent strategy logs stored on{" "}
-            <a
-              href="https://docs.bnbchain.org/bnb-greenfield/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[var(--accent)] hover:underline"
-            >
-              BNB Greenfield
-            </a>{" "}
-            — decentralized & immutable
-          </p>
+        <div className="flex items-center gap-3">
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+            style={{
+              background: "linear-gradient(135deg, rgba(240,185,11,0.15) 0%, rgba(240,185,11,0.05) 100%)",
+              border: "1px solid rgba(240,185,11,0.15)",
+            }}
+          >
+            <ShieldIcon className="w-5 h-5 text-bnb-gold" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-white">Audit Trail</h1>
+            <p className="text-sm text-[#6b6b80]">
+              Agent strategy logs stored on{" "}
+              <a href="https://docs.bnbchain.org/bnb-greenfield/" target="_blank" rel="noopener noreferrer" className="text-bnb-gold hover:underline">BNB Greenfield</a>{" "}
+              — decentralised &amp; immutable
+            </p>
+          </div>
         </div>
         <button
           onClick={loadLogs}
-          className="text-sm px-3 py-1.5 rounded-lg border border-[var(--border)] text-[var(--muted)] hover:text-[var(--accent)] hover:border-[var(--accent)] transition"
+          className="flex items-center gap-2 text-sm px-4 py-2 rounded-lg border border-[var(--border)] text-[var(--muted)] hover:text-bnb-gold hover:border-bnb-gold transition cursor-pointer"
         >
-          🔄 Refresh
+          <RefreshCw size={13} /> Refresh
         </button>
       </div>
 
       {/* Greenfield info banner */}
       <div className="bg-[var(--card)] border border-[var(--accent)]/30 rounded-xl p-4 text-sm flex items-start gap-3">
-        <span className="text-2xl">🟢</span>
+        <div className="w-7 h-7 rounded-full bg-green-500/20 flex items-center justify-center shrink-0 mt-0.5">
+          <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
+        </div>
         <div>
           <p className="font-bold text-[var(--foreground)]">Powered by BNB Greenfield</p>
           <p className="text-[var(--muted)] mt-1">
@@ -125,27 +132,10 @@ export default function AuditPage() {
             audit trail that anyone can verify.
           </p>
           <div className="flex gap-4 mt-2 text-xs text-[var(--muted)]">
-            <span>
-              📦 Bucket: <code className="text-[var(--accent)]">{EVOARENA_BUCKET}</code>
-            </span>
-            <span>
-              🌐 SP:{" "}
-              <a
-                href={GREENFIELD_SP_ENDPOINT}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[var(--accent)] hover:underline"
-              >
-                SP1 Testnet
-              </a>
-            </span>
-            <a
-              href="https://testnet.greenfieldscan.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[var(--accent)] hover:underline"
-            >
-              Explorer ↗
+            <span>Bucket: <code className="text-bnb-gold">{EVOARENA_BUCKET}</code></span>
+            <span>SP: <a href={GREENFIELD_SP_ENDPOINT} target="_blank" rel="noopener noreferrer" className="text-bnb-gold hover:underline">SP1 Testnet</a></span>
+            <a href="https://testnet.greenfieldscan.com/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-bnb-gold hover:underline">
+              Explorer <ExternalLink size={10} />
             </a>
           </div>
         </div>
@@ -172,11 +162,9 @@ export default function AuditPage() {
       {/* Empty state */}
       {!loading && filteredLogs.length === 0 && (
         <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-12 text-center">
-          <p className="text-4xl mb-3">📭</p>
+          <div className="flex justify-center mb-3"><Inbox size={40} className="text-[var(--muted)]" /></div>
           <p className="text-[var(--muted)]">
-            {filter
-              ? "No logs match your filter"
-              : "No audit logs found yet. Logs are created when agents submit parameter updates."}
+            {filter ? "No logs match your filter" : "No audit logs found yet. Logs are created when agents submit parameter updates."}
           </p>
         </div>
       )}
@@ -202,13 +190,9 @@ export default function AuditPage() {
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <span className="text-lg">
-                      {entry.data?.action === "parameter_update"
-                        ? "⚙️"
-                        : entry.data?.action === "registration"
-                        ? "🆕"
-                        : "📊"}
-                    </span>
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: "rgba(240,185,11,0.08)", border: "1px solid rgba(240,185,11,0.12)" }}>
+                      {entry.data?.action === "parameter_update" ? <Settings2 size={15} className="text-bnb-gold" /> : entry.data?.action === "registration" ? <FilePlus2 size={15} className="text-neon-blue" /> : <BarChart2 size={15} className="text-bnb-gold" />}
+                    </div>
                     <div>
                       <p className="text-sm font-mono text-[var(--foreground)]">
                         Agent: {agentShort}
@@ -273,8 +257,8 @@ export default function AuditPage() {
                       )}
                     </div>
                     {selectedLog.data.data.reason && (
-                      <p className="text-[var(--muted)]">
-                        💡 {selectedLog.data.data.reason}
+                      <p className="flex items-center gap-1 text-[var(--muted)]">
+                        <Lightbulb size={11} className="text-bnb-gold shrink-0" /> {selectedLog.data.data.reason}
                       </p>
                     )}
                     <details className="mt-2">

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import { EVOPOOL_ABI, CONTROLLER_ABI, ADDRESSES, BSC_TESTNET_RPC } from "@/lib/contracts";
+import { HistoryIcon, ActivityIcon, ChartIcon, SettingsIcon, AgentIcon, APYIcon } from "@/components/icons";
 
 interface TxEvent {
   type: "Swap" | "LiquidityAdded" | "LiquidityRemoved" | "ParameterUpdate" | "AgentRegistered" | "AgentSlashed";
@@ -125,26 +126,33 @@ export default function HistoryPage() {
     AgentSlashed: "text-orange-400",
   };
 
-  const typeIcons: Record<string, string> = {
-    Swap: "💱",
-    LiquidityAdded: "💧",
-    LiquidityRemoved: "🔥",
-    ParameterUpdate: "⚙️",
-    AgentRegistered: "🤖",
-    AgentSlashed: "⚡",
+  const typeIcons: Record<string, React.ReactNode> = {
+    Swap: <ActivityIcon className="w-4 h-4 inline" dropShadow={false} />,
+    LiquidityAdded: <ChartIcon className="w-4 h-4 inline" dropShadow={false} />,
+    LiquidityRemoved: <ChartIcon className="w-4 h-4 inline" dropShadow={false} />,
+    ParameterUpdate: <SettingsIcon className="w-4 h-4 inline" dropShadow={false} />,
+    AgentRegistered: <AgentIcon className="w-4 h-4 inline" dropShadow={false} />,
+    AgentSlashed: <APYIcon className="w-4 h-4 inline" dropShadow={false} />,
   };
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">📜 Transaction History</h1>
-      <p className="text-[var(--muted)]">Recent on-chain events from EvoPool and AgentController</p>
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "linear-gradient(135deg, rgba(240,185,11,0.15) 0%, rgba(240,185,11,0.05) 100%)", border: "1px solid rgba(240,185,11,0.15)" }}>
+          <HistoryIcon className="w-5 h-5 text-bnb-gold" />
+        </div>
+        <div>
+          <h1 className="text-3xl font-bold">Transaction History</h1>
+          <p className="text-[var(--muted)]">Recent on-chain events from EvoPool and AgentController</p>
+        </div>
+      </div>
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-2">
         {["all", "Swap", "LiquidityAdded", "LiquidityRemoved", "ParameterUpdate", "AgentRegistered", "AgentSlashed"].map((f) => (
           <button key={f} onClick={() => setFilter(f)}
-            className={`px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${filter === f ? "bg-[var(--accent)] text-white" : "bg-[var(--card)] border border-[var(--border)] text-[var(--muted)]"}`}>
-            {f === "all" ? "All" : `${typeIcons[f] || ""} ${f}`}
+            className={`px-3 py-1 flex items-center gap-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${filter === f ? "bg-[var(--accent)] text-white" : "bg-[var(--card)] border border-[var(--border)] text-[var(--muted)]"}`}>
+            {f === "all" ? "All" : <>{typeIcons[f]} {f}</>}
           </button>
         ))}
         <select value={blockRange} onChange={(e) => setBlockRange(Number(e.target.value))}
@@ -169,7 +177,7 @@ export default function HistoryPage() {
           {filtered.slice(0, 100).map((ev, i) => (
             <div key={i} className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-2">
               <div className="flex items-center gap-2 min-w-[160px]">
-                <span className="text-lg">{typeIcons[ev.type]}</span>
+                <span className="flex items-center justify-center w-6 h-6">{typeIcons[ev.type]}</span>
                 <span className={`text-xs font-bold ${typeColors[ev.type]}`}>{ev.type}</span>
               </div>
               <div className="flex-1 text-sm font-mono text-[var(--muted)]">{ev.details}</div>

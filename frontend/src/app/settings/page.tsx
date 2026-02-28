@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { Wallet, CheckCircle2, XCircle, Lightbulb, Loader2, ExternalLink } from "lucide-react";
+import { SettingsIcon } from "@/components/icons";
 import { useWallet } from "@/hooks/useWallet";
 import { useGreenfield } from "@/hooks/useGreenfield";
 import { useToast } from "@/components/Toast";
@@ -206,12 +208,27 @@ export default function SettingsPage() {
 
   return (
     <main className="max-w-2xl mx-auto px-4 py-8 space-y-8">
-      <h1 className="text-2xl font-bold text-[var(--accent)]">⚙️ Agent Settings</h1>
+      {/* Page Header */}
+      <div className="flex items-center gap-3">
+        <div
+          className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+          style={{
+            background: "linear-gradient(135deg, rgba(240,185,11,0.15) 0%, rgba(240,185,11,0.05) 100%)",
+            border: "1px solid rgba(240,185,11,0.15)",
+          }}
+        >
+          <SettingsIcon className="w-5 h-5 text-bnb-gold" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-white">Agent Settings</h1>
+          <p className="text-sm text-[#6b6b80]">Register as an agent and submit parameter updates on-chain</p>
+        </div>
+      </div>
 
       {/* Wallet hint when disconnected */}
       {!connected && (
-        <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 text-sm text-[var(--muted)] text-center">
-          🔗 Connect your wallet using the button in the navbar to register or submit updates.
+        <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 text-sm text-[var(--muted)] flex items-center justify-center gap-2">
+          <Wallet size={15} /> Connect your wallet using the button in the navbar to register or submit updates.
         </div>
       )}
 
@@ -255,11 +272,10 @@ export default function SettingsPage() {
             <button
               onClick={handleRegister}
               disabled={registering || !connected}
-              className={`px-6 py-2 rounded-lg font-semibold transition ${
-                !connected
-                  ? "bg-gray-600 text-gray-400 cursor-not-allowed"
-                  : "bg-[var(--accent)] hover:brightness-110 text-[#0B0E11] cursor-pointer"
-              } disabled:opacity-50`}
+              className={`px-6 py-2 rounded-lg font-semibold transition ${!connected
+                ? "bg-gray-600 text-gray-400 cursor-not-allowed"
+                : "bg-[var(--accent)] hover:brightness-110 text-[#0B0E11] cursor-pointer"
+                } disabled:opacity-50`}
             >
               {registering ? "Registering..." : "Register"}
             </button>
@@ -275,10 +291,10 @@ export default function SettingsPage() {
             </div>
             <div>
               <p className="text-xs text-[var(--muted)]">Cooldown Ready</p>
-              <p className={`text-lg font-mono ${canUpdate ? "text-[var(--green)]" : "text-[var(--red)]"}`}>
+              <p className={`flex items-center gap-1.5 text-lg font-mono ${canUpdate ? "text-[var(--green)]" : "text-[var(--red)]"}`}>
                 {canUpdate
-                  ? "✓ Ready"
-                  : `✗ ${Math.floor(cooldownRemaining / 60)}m ${(cooldownRemaining % 60).toString().padStart(2, "0")}s`}
+                  ? <><CheckCircle2 size={16} /> Ready</>
+                  : <><XCircle size={16} /> {Math.floor(cooldownRemaining / 60)}m {(cooldownRemaining % 60).toString().padStart(2, "0")}s</>}
               </p>
             </div>
           </div>
@@ -335,18 +351,18 @@ export default function SettingsPage() {
           <button
             onClick={handleSubmit}
             disabled={submitting || !canUpdate}
-            className="w-full bg-[var(--accent)] hover:brightness-110 disabled:opacity-50 text-[#0B0E11] font-bold py-3 rounded-lg text-sm transition"
+            className="w-full flex items-center justify-center gap-2 bg-[var(--accent)] hover:brightness-110 disabled:opacity-50 text-[#0B0E11] font-bold py-3 rounded-lg text-sm transition cursor-pointer"
           >
             {submitting
-              ? "Submitting..."
+              ? <><Loader2 size={15} className="animate-spin" /> Submitting…</>
               : canUpdate
-              ? "Submit Update"
-              : `Cooldown ${Math.floor(cooldownRemaining / 60)}m ${(cooldownRemaining % 60).toString().padStart(2, "0")}s`}
+                ? "Submit Update"
+                : `Cooldown ${Math.floor(cooldownRemaining / 60)}m ${(cooldownRemaining % 60).toString().padStart(2, "0")}s`}
           </button>
 
           {txHash && (
-            <p className="text-xs text-[var(--green)] break-all">
-              ✓ TX: <a href={`https://testnet.bscscan.com/tx/${txHash}`} target="_blank" rel="noopener noreferrer" className="underline hover:text-[var(--accent)]">{txHash}</a>
+            <p className="flex items-center gap-1.5 text-xs text-[var(--green)] break-all">
+              <CheckCircle2 size={12} /> TX: <a href={`https://testnet.bscscan.com/tx/${txHash}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 underline hover:text-bnb-gold">{txHash.slice(0, 14)}… <ExternalLink size={10} /></a>
             </p>
           )}
           {error && <p className="text-xs text-[var(--red)]">Error: {error}</p>}
@@ -355,7 +371,7 @@ export default function SettingsPage() {
 
       {/* ── Strategy Tips ────────────────────────────────────────── */}
       <section className="bg-[var(--card)]/50 border border-[var(--border)] rounded-xl p-6">
-        <h2 className="text-lg font-semibold text-[var(--foreground)] mb-3">💡 Strategy Guide</h2>
+        <h2 className="flex items-center gap-2 text-lg font-semibold text-[var(--foreground)] mb-3"><Lightbulb size={18} className="text-bnb-gold" /> Strategy Guide</h2>
         <ul className="text-sm text-[var(--muted)] space-y-2 list-disc list-inside">
           <li><strong className="text-[var(--accent)]">Normal</strong>: Standard constant-product. Good for stable markets.</li>
           <li><strong className="text-[var(--accent)]">Defensive</strong>: Higher slippage for large trades. Use during whale activity.</li>

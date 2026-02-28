@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { usePoolState } from "@/hooks/useEvoPool";
+import { GamepadIcon, ChartIcon, ActivityIcon } from "@/components/icons";
 import {
   ResponsiveContainer,
   BarChart,
@@ -101,10 +102,15 @@ export default function DemoPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">🎮 Demo Panel</h1>
-      <p className="text-[var(--muted)]">
-        Run a single agent epoch to see parameter updates in real-time
-      </p>
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "linear-gradient(135deg, rgba(240,185,11,0.15) 0%, rgba(240,185,11,0.05) 100%)", border: "1px solid rgba(240,185,11,0.15)" }}>
+          <GamepadIcon className="w-5 h-5 text-bnb-gold" />
+        </div>
+        <div>
+          <h1 className="text-3xl font-bold">Demo Panel</h1>
+          <p className="text-[var(--muted)]">Run a single agent epoch to see parameter updates in real-time</p>
+        </div>
+      </div>
 
       {/* Current state */}
       {state && (
@@ -144,11 +150,10 @@ export default function DemoPage() {
         <button
           onClick={runDemoEpoch}
           disabled={running}
-          className={`px-6 py-3 rounded-lg font-semibold text-white transition cursor-pointer ${
-            running
+          className={`px-6 py-3 rounded-lg font-semibold text-white transition cursor-pointer ${running
               ? "bg-gray-600 cursor-not-allowed"
               : "bg-[var(--accent)] hover:bg-indigo-500"
-          }`}
+            }`}
         >
           {running ? "⏳ Running epoch..." : "⚡ Run Demo Epoch"}
         </button>
@@ -187,8 +192,8 @@ export default function DemoPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Bar Chart Comparison */}
         <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-5">
-          <h3 className="text-sm font-semibold text-[var(--muted)] mb-3 uppercase tracking-wider">
-            📊 Static vs EvoPool — Metrics
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-[var(--muted)] mb-3 uppercase tracking-wider">
+            <ChartIcon className="w-4 h-4 text-bnb-gold" /> Static vs EvoPool — Metrics
           </h3>
           {comparisonData.length > 0 ? (
             <ResponsiveContainer width="100%" height={250}>
@@ -209,8 +214,8 @@ export default function DemoPage() {
 
         {/* Radar Chart */}
         <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-5">
-          <h3 className="text-sm font-semibold text-[var(--muted)] mb-3 uppercase tracking-wider">
-            🕸️ Capability Radar
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-[var(--muted)] mb-3 uppercase tracking-wider">
+            <ActivityIcon className="w-4 h-4 text-neon-blue" /> Capability Radar
           </h3>
           {radarData.length > 0 ? (
             <ResponsiveContainer width="100%" height={250}>

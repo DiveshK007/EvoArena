@@ -7,6 +7,7 @@ import { ethers } from "ethers";
 import { CONTROLLER_ABI, ADDRESSES } from "@/lib/contracts";
 import { APSChart, APSDataPoint } from "@/components/Charts";
 import { CopyButton } from "@/components/CopyButton";
+import { AgentIcon, LockIcon, TrophyIcon, ChartIcon } from "@/components/icons";
 
 interface APSSnapshot {
   epoch: number;
@@ -100,9 +101,14 @@ export default function AgentsPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">🤖 <span className="text-[var(--accent)]">Agents</span></h1>
-          <p className="text-[var(--muted)]">Registered AI agents controlling EvoPool parameters</p>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "linear-gradient(135deg, rgba(240,185,11,0.15) 0%, rgba(240,185,11,0.05) 100%)", border: "1px solid rgba(240,185,11,0.15)" }}>
+            <AgentIcon className="w-5 h-5 text-bnb-gold" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold"><span className="text-[var(--accent)]">Agents</span></h1>
+            <p className="text-[var(--muted)]">Registered AI agents controlling EvoPool parameters</p>
+          </div>
         </div>
         <div className="text-sm text-[var(--muted)]">
           {agents.length} agent{agents.length !== 1 ? "s" : ""} registered
@@ -112,8 +118,8 @@ export default function AgentsPage() {
       {/* Register Agent Card — shown if user is NOT already an agent */}
       {!isCurrentUserAgent && (
         <div className="bg-[var(--card)] border border-[var(--accent)] border-opacity-30 rounded-xl p-5">
-          <h3 className="text-sm font-semibold text-[var(--accent)] mb-3 uppercase tracking-wider">
-            🔐 Register as Agent
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-[var(--accent)] mb-3 uppercase tracking-wider">
+            <LockIcon className="w-4 h-4" /> Register as Agent
           </h3>
           <p className="text-sm text-[var(--muted)] mb-4">
             Bond tBNB to become a registered agent. Agents can submit pool parameter updates and compete for epoch rewards.
@@ -133,13 +139,12 @@ export default function AgentsPage() {
             <button
               onClick={handleRegister}
               disabled={registering || !connected}
-              className={`px-6 py-2 rounded-lg font-bold text-sm transition cursor-pointer ${
-                registering
+              className={`px-6 py-2 rounded-lg font-bold text-sm transition cursor-pointer ${registering
                   ? "bg-gray-600 text-white cursor-not-allowed"
                   : !connected
                     ? "bg-gray-600 text-gray-400 cursor-not-allowed"
                     : "bg-[var(--accent)] text-[#0B0E11] hover:bg-[var(--accent-hover)]"
-              }`}
+                }`}
             >
               {registering ? "Registering…" : !connected ? "Connect wallet in navbar" : "Register Agent"}
             </button>
@@ -154,7 +159,7 @@ export default function AgentsPage() {
         </div>
       ) : agents.length === 0 ? (
         <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-8 text-center">
-          <div className="text-5xl mb-4">🤖</div>
+          <div className="flex justify-center mb-4 text-[#F0B90B]"><AgentIcon className="w-12 h-12" /></div>
           <h3 className="text-lg font-bold mb-2">No Agents Registered Yet</h3>
           <p className="text-[var(--muted)] text-sm mb-4">
             Be the first! Register above with a tBNB bond, then submit parameter proposals from the Settings page.
@@ -235,8 +240,8 @@ export default function AgentsPage() {
 
       {/* APS Leaderboard */}
       <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-5">
-        <h3 className="text-sm font-semibold text-[var(--muted)] mb-3 uppercase tracking-wider">
-          🏆 APS Leaderboard
+        <h3 className="flex items-center gap-2 text-sm font-semibold text-[var(--muted)] mb-3 uppercase tracking-wider">
+          <TrophyIcon className="w-4 h-4 text-bnb-gold" /> APS Leaderboard
         </h3>
         {sortedLeaderboard.length === 0 ? (
           <p className="text-[var(--muted)] text-sm">
@@ -280,8 +285,8 @@ export default function AgentsPage() {
 
       {/* APS Chart */}
       <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-5">
-        <h3 className="text-sm font-semibold text-[var(--muted)] mb-3 uppercase tracking-wider">
-          📊 APS Over Epochs
+        <h3 className="flex items-center gap-2 text-sm font-semibold text-[var(--muted)] mb-3 uppercase tracking-wider">
+          <ChartIcon className="w-4 h-4 text-neon-blue" /> APS Over Epochs
         </h3>
         <APSChart data={apsChartData} />
       </div>
