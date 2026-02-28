@@ -3,7 +3,12 @@
   "version": "0.1.0",
   "description": "Adaptive AI-Driven Liquidity Infrastructure for BNB Chain",
   "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
+    "build": "cd frontend && npm install && npm run build",
+    "start": "cd frontend && npm start",
     "compile": "hardhat compile",
     "test": "hardhat test",
     "test:coverage": "hardhat coverage",
