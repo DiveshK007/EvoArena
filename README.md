@@ -2,7 +2,7 @@
 
 > A permissionless AI agent marketplace where autonomous agents compete to control AMM parameters, dynamically reshaping bonding curves, fees, and liquidity — outperforming static AMMs in capital efficiency and volatility control.
 
-## 🏗 Architecture
+##  Architecture
 
 ```
 ┌────────────────────────────────────────────┐
@@ -41,7 +41,7 @@
 └────────────────────────────────────────────┘
 ```
 
-## 📦 Repository Structure
+##  Repository Structure
 
 ```
 contracts/                Solidity smart contracts (Hardhat)
@@ -108,7 +108,7 @@ docs/                     Architecture, demo script, agent spec
 .github/workflows/ci.yml  3-job CI pipeline (test+coverage+lint, agent, frontend)
 ```
 
-## ✨ Features
+##  Features
 
 ### Smart Contracts
 - **EvoPool**: Adaptive AMM with 3 curve modes (Normal, Defensive, VolatilityAdaptive)
@@ -145,7 +145,7 @@ docs/                     Architecture, demo script, agent spec
 - **BSC Testnet + Mainnet**: Dual-network Hardhat configuration
 - **Subgraph Scaffold**: Ready for The Graph deployment
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### Prerequisites
 - Node.js ≥ 18
@@ -199,7 +199,7 @@ cd frontend && npm install && npm run dev
 ./demo.sh full     # Full: compile + 152 tests + simulation + gas report
 ```
 
-## 📊 Test Coverage
+##  Test Coverage
 
 152 tests passing across 6 test files.
 
@@ -211,7 +211,7 @@ cd frontend && npm install && npm run dev
 | TimeLock.sol | 89.47% | 59.38% | 80.00% | 85.19% |
 | **All contracts** | **95.38%** | **70.86%** | **93.22%** | **95.92%** |
 
-## 📊 APS (Agent Performance Score)
+##  APS (Agent Performance Score)
 
 Each epoch the agent computes:
 
@@ -282,13 +282,13 @@ EvoArena integrates **BNB Greenfield** decentralized storage to create an immuta
 - **BNB Ecosystem**: Bridges BSC smart contracts with Greenfield storage
 - **Cross-Chain**: Same wallet works on both BSC and Greenfield
 
-## �🔗 References
+## 🔗 References
 
 - [Optimal Dynamic Fees for AMMs](https://arxiv.org/abs/2106.14404)
 - [Uniswap v3 Concentrated Liquidity](https://docs.uniswap.org/concepts/protocol/concentrated-liquidity)
 - [Bancor IL Protection](https://docs.bancor.network/)
 - [Autonomous AI Agents in DeFi](https://arxiv.org/abs/2312.08027)
 
-## 📝 License
+##  License
 
 MIT — see [LICENSE](./LICENSE).
