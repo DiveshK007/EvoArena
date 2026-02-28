@@ -4,50 +4,67 @@
 
 ## 🏗 Architecture
 
+### System Overview
+
+```mermaid
+graph LR
+    Users["👤 Users<br/>(Traders · LPs)"]
+    Frontend["🖥 Frontend<br/>Next.js 14"]
+    Contracts["⛓ Smart Contracts<br/>BSC Testnet"]
+    Agent["🤖 AI Agent<br/>Node.js"]
+    Greenfield["📦 BNB Greenfield<br/>Audit Storage"]
+
+    Users -->|swap · add liquidity| Frontend
+    Frontend -->|ethers.js v6| Contracts
+    Agent -->|poll state & submit updates| Contracts
+    Agent -.->|upload decision logs| Greenfield
+    Frontend -.->|read audit logs| Greenfield
+```
+
+### Smart Contract Data Flow
+
 ```mermaid
 graph TD
-    subgraph Frontend ["Frontend (Next.js 14)"]
-        UI[Pool · Agents · Swap · Liquidity · Audit · History · Settings · Demo]
-    end
+    Trader["👤 Trader"] -->|"swap()"| Pool
+    LP["💧 LP"] -->|"addLiquidity() · removeLiquidity()"| Pool
+    AgentWallet["🤖 Agent"] -->|"registerAgent() + bond tBNB"| Controller
+    AgentWallet -->|"submitParameterUpdate(fee, beta, mode)"| Controller
 
-    subgraph Agent ["Off-Chain Agent (Node.js)"]
-        ML[ML Strategy Engine]
-        RB[Rule-Based Engine]
-        CB[Circuit Breaker]
-        VC[Volatility Calculator]
-        APS[APS Calculator]
-        BT[Backtester]
-    end
+    Controller -->|"validate bounds · cooldown · bond"| Controller
+    Controller -->|"updateParameters()"| Pool
 
-    subgraph Contracts ["Smart Contracts (BSC Testnet)"]
-        AC[AgentController.sol<br/>Bonds · Cooldown · Slash · Delta Limits]
-        EP[EvoPool.sol<br/>ERC-20 LP · TWAP Oracle · Protocol Fee<br/>3 Curve Modes · Balance-Diff · EIP-2612]
-        EM[EpochManager.sol<br/>Competition · Rewards · Scoring]
-        TL[TimeLock.sol<br/>Governance Timelock]
-    end
+    Epoch -->|"score agents · distribute rewards"| Controller
+    TimeLock -.->|"governance (24h delay)"| Controller
 
-    subgraph Storage ["Decentralized Storage"]
-        GF[BNB Greenfield<br/>Audit Logs · Strategy Decisions<br/>Pool Snapshots · Tamper-Proof Records]
-    end
+    Pool["EvoPool.sol<br/>AMM · LP Tokens · TWAP · Fees"]
+    Controller["AgentController.sol<br/>Registry · Bonds · Slashing"]
+    Epoch["EpochManager.sol<br/>Competition · Rewards"]
+    TimeLock["TimeLock.sol<br/>Governance"]
 
-    UI -->|read state / submit tx| EP
-    UI -->|register agent / settings| AC
-    UI -.->|read audit logs| GF
+    style Pool fill:#1a1a2e,stroke:#F5A623,color:#F5A623
+    style Controller fill:#1a1a2e,stroke:#4A90D9,color:#4A90D9
+    style Epoch fill:#1a1a2e,stroke:#7ED321,color:#7ED321
+    style TimeLock fill:#1a1a2e,stroke:#888,color:#888
+```
 
-    VC --> ML
-    VC --> RB
-    ML --> Agent
-    RB --> Agent
-    CB --> Agent
+### AI Agent Decision Pipeline
 
-    Agent -->|poll reserves, fees, events| EP
-    Agent -->|submitParameterUpdate| AC
-    AC -->|updateParameters| EP
-    EM -->|score & reward| AC
-    TL -.->|govern| AC
+```mermaid
+graph LR
+    A["📡 Poll Pool<br/>reserves · fee · events"] --> B["📊 Compute Features<br/>volatility · velocity · whale %"]
+    B --> C{"🧠 Strategy Engine"}
+    C -->|rule-based| D["Rule Engine<br/>3 curve modes"]
+    C -->|ML mode| E["Linear Regression<br/>confidence-weighted"]
+    D --> F["🛡 Circuit Breaker<br/>anomaly check"]
+    E --> F
+    F -->|safe| G["✅ Submit Update TX<br/>→ AgentController"]
+    F -->|blocked| H["⛔ Skip & Alert"]
+    G --> I["📈 Compute APS Score"]
+    I --> J["📦 Upload Log<br/>→ BNB Greenfield"]
 
-    Agent -.->|upload decision log| GF
-    APS -.->|save snapshot| Agent
+    style F fill:#1a1a2e,stroke:#D0021B,color:#D0021B
+    style G fill:#1a1a2e,stroke:#7ED321,color:#7ED321
+    style H fill:#1a1a2e,stroke:#D0021B,color:#D0021B
 ```
 
 ## 📦 Repository Structure

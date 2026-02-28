@@ -2,47 +2,58 @@
 
 ## System Architecture
 
+### High-Level Overview
+
+```mermaid
+graph LR
+    Users["👤 Users<br/>(Traders · LPs)"]
+    Frontend["🖥 Frontend<br/>Next.js 14"]
+    Contracts["⛓ Smart Contracts<br/>BSC Testnet"]
+    Agent["🤖 AI Agent<br/>Node.js"]
+    Greenfield["📦 BNB Greenfield<br/>Audit Storage"]
+
+    Users -->|swap · add liquidity| Frontend
+    Frontend -->|ethers.js v6| Contracts
+    Agent -->|poll state & submit updates| Contracts
+    Agent -.->|upload decision logs| Greenfield
+    Frontend -.->|read audit logs| Greenfield
+```
+
+### Smart Contract Data Flow
+
 ```mermaid
 graph TD
-    subgraph Frontend ["Frontend (Next.js 14)"]
-        UI[Pool · Agents · Swap · Liquidity · Audit · History · Settings · Demo]
-    end
+    Trader["👤 Trader"] -->|"swap()"| Pool
+    LP["💧 LP"] -->|"addLiquidity() · removeLiquidity()"| Pool
+    AgentWallet["🤖 Agent"] -->|"registerAgent() + bond tBNB"| Controller
+    AgentWallet -->|"submitParameterUpdate(fee, beta, mode)"| Controller
 
-    subgraph Agent ["Off-Chain Agent (Node.js)"]
-        ML[ML Strategy Engine]
-        RB[Rule-Based Engine]
-        CB[Circuit Breaker]
-        VC[Volatility Calculator]
-        APS[APS Calculator]
-    end
+    Controller -->|"validate bounds · cooldown · bond"| Controller
+    Controller -->|"updateParameters()"| Pool
 
-    subgraph Contracts ["Smart Contracts (BSC Testnet)"]
-        AC[AgentController.sol]
-        EP[EvoPool.sol]
-        EM[EpochManager.sol]
-        TL[TimeLock.sol]
-    end
+    Epoch -->|"score agents · distribute rewards"| Controller
+    TimeLock -.->|"governance (24h delay)"| Controller
 
-    subgraph Storage ["BNB Greenfield"]
-        GF[Audit Logs & Snapshots]
-    end
+    Pool["EvoPool.sol<br/>AMM · LP Tokens · TWAP · Fees"]
+    Controller["AgentController.sol<br/>Registry · Bonds · Slashing"]
+    Epoch["EpochManager.sol<br/>Competition · Rewards"]
+    TimeLock["TimeLock.sol<br/>Governance"]
+```
 
-    UI -->|read state / submit tx| EP
-    UI -->|register agent| AC
-    UI -.->|read logs| GF
+### AI Agent Decision Pipeline
 
-    VC --> ML
-    VC --> RB
-    ML --> Agent
-    RB --> Agent
-    CB --> Agent
-
-    Agent -->|poll reserves| EP
-    Agent -->|submitParameterUpdate| AC
-    AC -->|updateParameters| EP
-    EM -->|score & reward| AC
-    TL -.->|govern| AC
-    Agent -.->|upload decision log| GF
+```mermaid
+graph LR
+    A["📡 Poll Pool<br/>reserves · fee · events"] --> B["📊 Compute Features<br/>volatility · velocity · whale %"]
+    B --> C{"🧠 Strategy Engine"}
+    C -->|rule-based| D["Rule Engine<br/>3 curve modes"]
+    C -->|ML mode| E["Linear Regression<br/>confidence-weighted"]
+    D --> F["🛡 Circuit Breaker<br/>anomaly check"]
+    E --> F
+    F -->|safe| G["✅ Submit Update TX"]
+    F -->|blocked| H["⛔ Skip & Alert"]
+    G --> I["📈 Compute APS Score"]
+    I --> J["📦 Upload Log → Greenfield"]
 ```
 
 ## Tech Stack
