@@ -1,0 +1,19 @@
+# Next.js frontend image
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy frontend package
+COPY frontend/package.json frontend/package-lock.json* ./
+
+# Install dependencies
+RUN npm install
+
+# Copy frontend source
+COPY frontend/ .
+
+# Build Next.js (production)
+RUN npm run build
+
+EXPOSE 3000
+CMD ["npm", "start"]

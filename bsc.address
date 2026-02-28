@@ -1,0 +1,11 @@
+# EvoArena — BSC Testnet Deployments (Chain 97)
+# All contracts verified on BscScan
+
+EvoToken A       0xAe6A9CaF9739C661e593979386580d3d14abB502  https://testnet.bscscan.com/address/0xAe6A9CaF9739C661e593979386580d3d14abB502#code
+EvoToken B       0x08DA91C81cebD27d181cA732615379f185FbFb51  https://testnet.bscscan.com/address/0x08DA91C81cebD27d181cA732615379f185FbFb51#code
+EvoPool          0x36Fda9F9F17ea5c07C0CDE540B220fC0697bBcE3  https://testnet.bscscan.com/address/0x36Fda9F9F17ea5c07C0CDE540B220fC0697bBcE3#code
+AgentController  0x163f03E4633B86fBB5C82c6e6a6aCbD1452bEe7c  https://testnet.bscscan.com/address/0x163f03E4633B86fBB5C82c6e6a6aCbD1452bEe7c#code
+EpochManager     0xab07a553a7237c39fBbf74b7FcC003013D0618D3  https://testnet.bscscan.com/address/0xab07a553a7237c39fBbf74b7FcC003013D0618D3#code
+TimeLock         0xf967B398c6Df05a1ED6b9DE15f0B93f8f253c1a6  https://testnet.bscscan.com/address/0xf967B398c6Df05a1ED6b9DE15f0B93f8f253c1a6#code
+
+Deployer         0x3E7716BeE2D7E923CB9b572EB169EdFB6cdbDAB6  https://testnet.bscscan.com/address/0x3E7716BeE2D7E923CB9b572EB169EdFB6cdbDAB6

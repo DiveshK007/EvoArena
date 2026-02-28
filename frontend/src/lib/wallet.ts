@@ -36,6 +36,21 @@ export function getAvailableWallets(): WalletType[] {
 }
 
 /**
+ * Helper: resolve the correct ethereum provider object.
+ * When multiple wallet extensions are installed, picks MetaMask explicitly.
+ */
+function getEthereumProvider(type: WalletType = "metamask"): any | null {
+  if (typeof window === "undefined") return null;
+  let ethereum = (window as any).ethereum;
+  if (!ethereum) return null;
+  if (type === "metamask" && ethereum.providers?.length) {
+    const mm = ethereum.providers.find((p: any) => p.isMetaMask && !p.isBraveWallet);
+    if (mm) return mm;
+  }
+  return ethereum;
+}
+
+/**
  * Connect using the specified wallet type.
  * Falls back to window.ethereum for injected providers.
  * WalletConnect requires @walletconnect/ethereum-provider to be installed.
@@ -48,12 +63,10 @@ export async function connectWallet(
   // ── WalletConnect ──────────────────────────────────────────────────
   if (type === "walletconnect") {
     try {
-      // Dynamic import hidden from webpack static analysis
-      // Install: npm i @walletconnect/ethereum-provider
       const modPath = "@walletconnect/ethereum-provider";
       const mod = await import(/* webpackIgnore: true */ modPath);
       const EthereumProvider = mod.EthereumProvider || mod.default?.EthereumProvider;
-      if (!EthereumProvider) throw new Error("WalletConnect package not found. Run: npm i @walletconnect/ethereum-provider");
+      if (!EthereumProvider) throw new Error("WalletConnect package not found.");
       const wcProvider = await EthereumProvider.init({
         projectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID || "PLACEHOLDER",
         chains: [BSC_TESTNET_CHAIN_ID],
@@ -69,15 +82,13 @@ export async function connectWallet(
       return new ethers.BrowserProvider(wcProvider as any);
     } catch (err: any) {
       console.error("WalletConnect error:", err);
-      alert(
-        "WalletConnect is not available. Use MetaMask instead, or install: npm i @walletconnect/ethereum-provider"
-      );
+      alert("WalletConnect is not available. Use MetaMask instead.");
       return null;
     }
   }
 
   // ── Injected (MetaMask / generic) ─────────────────────────────────
-  const ethereum = (window as any).ethereum;
+  const ethereum = getEthereumProvider(type);
   if (!ethereum) {
     alert("Please install MetaMask or a compatible wallet.");
     return null;
@@ -108,12 +119,32 @@ export async function getWalletSigner(): Promise<ethers.Signer | null> {
   return provider.getSigner();
 }
 
+/**
+ * Silent check — returns the connected address without triggering a popup.
+ * Uses eth_accounts (passive) instead of eth_requestAccounts (active).
+ */
 export async function getWalletAddress(): Promise<string | null> {
-  if (typeof window === "undefined" || !(window as any).ethereum) return null;
-  const provider = new ethers.BrowserProvider((window as any).ethereum);
+  const ethereum = getEthereumProvider("metamask");
+  if (!ethereum) return null;
   try {
-    const accounts = await provider.send("eth_accounts", []);
+    const accounts: string[] = await ethereum.request({ method: "eth_accounts" });
     return accounts[0] || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Silent reconnect — builds provider+signer from an already-connected account
+ * without triggering any MetaMask popup.
+ */
+export async function silentReconnect(): Promise<ethers.BrowserProvider | null> {
+  const ethereum = getEthereumProvider("metamask");
+  if (!ethereum) return null;
+  try {
+    const accounts: string[] = await ethereum.request({ method: "eth_accounts" });
+    if (!accounts[0]) return null;
+    return new ethers.BrowserProvider(ethereum);
   } catch {
     return null;
   }

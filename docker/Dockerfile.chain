@@ -1,0 +1,27 @@
+# Hardhat node + deployer image
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Install curl for healthcheck
+RUN apk add --no-cache curl
+
+# Copy root package + hardhat config
+COPY package.json package-lock.json* ./
+COPY hardhat.config.ts tsconfig.json ./
+COPY .env.example .env
+
+# Install dependencies
+RUN npm install --ignore-scripts 2>/dev/null || npm install
+
+# Copy contracts, scripts, test
+COPY contracts/ contracts/
+COPY scripts/ scripts/
+COPY test/ test/
+
+# Compile contracts
+RUN npx hardhat compile
+
+# Default: run local Hardhat node
+EXPOSE 8545
+CMD ["npx", "hardhat", "node", "--hostname", "0.0.0.0"]

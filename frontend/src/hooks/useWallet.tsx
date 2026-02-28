@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
 import { ethers } from "ethers";
-import { connectWallet, getWalletAddress, WalletType, getAvailableWallets } from "@/lib/wallet";
+import { connectWallet, getWalletAddress, silentReconnect, WalletType, getAvailableWallets } from "@/lib/wallet";
 
 interface WalletContextType {
   address: string | null;
@@ -64,18 +64,34 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     setWalletType(null);
   }, []);
 
-  // Auto-reconnect if already connected
+  // Auto-reconnect silently (no popup) if already connected
   useEffect(() => {
     (async () => {
-      const addr = await getWalletAddress();
-      if (addr) {
-        await connect();
+      try {
+        const addr = await getWalletAddress();
+        if (addr) {
+          const p = await silentReconnect();
+          if (p) {
+            const s = await p.getSigner();
+            const a = await s.getAddress();
+            setProvider(p);
+            setSigner(s);
+            setAddress(a);
+            setWalletType("metamask");
+          }
+        }
+      } catch (err) {
+        console.warn("Silent reconnect failed:", err);
       }
     })();
 
-    // Listen for account changes
+    // Listen for account/chain changes
+    // Use the top-level window.ethereum for event listeners (sub-providers
+    // from the .providers array may not support .on())
     if (typeof window !== "undefined" && (window as any).ethereum) {
       const ethereum = (window as any).ethereum;
+      if (typeof ethereum.on !== "function") return; // no event support
+
       const handleAccountsChanged = (accounts: string[]) => {
         if (accounts.length === 0) {
           disconnect();

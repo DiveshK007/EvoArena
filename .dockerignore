@@ -1,0 +1,15 @@
+node_modules
+.env
+.env.local
+coverage
+coverage.json
+cache
+artifacts
+typechain-types
+frontend/.next
+frontend/node_modules
+agent/node_modules
+agent/dist
+.git
+.github
+*.md

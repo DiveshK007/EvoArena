@@ -1,0 +1,95 @@
+# EvoArena — Full-Stack Docker Setup
+# Launch everything: docker-compose up --build
+# This starts:
+#   1. Hardhat local node (chain)
+#   2. Contract deployer (one-shot)
+#   3. Next.js frontend (port 3000)
+#   4. Off-chain AI agent (continuous loop)
+
+services:
+  # ── Local Hardhat Node ──────────────────────────────────────
+  chain:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.chain
+    ports:
+      - "8545:8545"
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8545"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ── Contract Deployer (runs once, then exits) ──────────────
+  deployer:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.chain
+    command: >
+      sh -c "
+        npx hardhat run scripts/deploy.ts --network localhost &&
+        cp deployment.json /shared/deployment.json
+      "
+    volumes:
+      - shared-data:/shared
+    depends_on:
+      chain:
+        condition: service_healthy
+    environment:
+      - PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+
+  # ── Next.js Frontend ────────────────────────────────────────
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      deployer:
+        condition: service_completed_successfully
+    volumes:
+      - shared-data:/shared
+    environment:
+      - NEXT_PUBLIC_RPC_URL=http://chain:8545
+      - NEXT_PUBLIC_CHAIN_ID=31337
+    entrypoint: >
+      sh -c "
+        if [ -f /shared/deployment.json ]; then
+          export NEXT_PUBLIC_EVOPOOL_ADDRESS=$$(cat /shared/deployment.json | node -pe 'JSON.parse(require(\"fs\").readFileSync(\"/dev/stdin\",\"utf8\")).evoPool')
+          export NEXT_PUBLIC_CONTROLLER_ADDRESS=$$(cat /shared/deployment.json | node -pe 'JSON.parse(require(\"fs\").readFileSync(\"/dev/stdin\",\"utf8\")).agentController')
+          export NEXT_PUBLIC_EPOCH_MANAGER_ADDRESS=$$(cat /shared/deployment.json | node -pe 'JSON.parse(require(\"fs\").readFileSync(\"/dev/stdin\",\"utf8\")).epochManager')
+          export NEXT_PUBLIC_TIMELOCK_ADDRESS=$$(cat /shared/deployment.json | node -pe 'JSON.parse(require(\"fs\").readFileSync(\"/dev/stdin\",\"utf8\")).timeLock')
+          export NEXT_PUBLIC_TOKEN_A_ADDRESS=$$(cat /shared/deployment.json | node -pe 'JSON.parse(require(\"fs\").readFileSync(\"/dev/stdin\",\"utf8\")).tokenA')
+          export NEXT_PUBLIC_TOKEN_B_ADDRESS=$$(cat /shared/deployment.json | node -pe 'JSON.parse(require(\"fs\").readFileSync(\"/dev/stdin\",\"utf8\")).tokenB')
+        fi
+        npm start
+      "
+
+  # ── Off-Chain AI Agent ──────────────────────────────────────
+  agent:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.agent
+    depends_on:
+      deployer:
+        condition: service_completed_successfully
+    volumes:
+      - shared-data:/shared
+    entrypoint: >
+      sh -c "
+        if [ -f /shared/deployment.json ]; then
+          export EVOPOOL_ADDRESS=$$(cat /shared/deployment.json | node -pe 'JSON.parse(require(\"fs\").readFileSync(\"/dev/stdin\",\"utf8\")).evoPool')
+          export AGENT_CONTROLLER_ADDRESS=$$(cat /shared/deployment.json | node -pe 'JSON.parse(require(\"fs\").readFileSync(\"/dev/stdin\",\"utf8\")).agentController')
+        fi
+        npm start
+      "
+    environment:
+      - AGENT_PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+      - BSC_TESTNET_RPC=http://chain:8545
+      - POLL_INTERVAL_MS=15000
+      - BASE_FEE_BPS=30
+    restart: on-failure
+
+volumes:
+  shared-data:

@@ -1,0 +1,18 @@
+# Off-chain AI agent image
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy agent package
+COPY agent/package.json agent/package-lock.json* ./
+
+# Install dependencies
+RUN npm install
+
+# Copy agent source
+COPY agent/ .
+
+# Build TypeScript
+RUN npm run build
+
+CMD ["npm", "start"]
